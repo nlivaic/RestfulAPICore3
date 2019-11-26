@@ -23,6 +23,7 @@ namespace API.Controllers
         }
 
         [HttpGet]
+        [HttpHead]
         public ActionResult<IEnumerable<AuthorDto>> Get([FromQuery] AuthorsResourceParameters authorsResourceParameters)
         {
             var authors = _mapper.Map<IEnumerable<AuthorDto>>(_repository.GetAuthors(authorsResourceParameters));
