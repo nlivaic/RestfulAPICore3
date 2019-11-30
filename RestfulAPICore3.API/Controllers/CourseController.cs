@@ -10,13 +10,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [ApiController]
-    [Route("/api/authors/{authorId}/courses")]
-    public class CourseController : ControllerBase
+    [Route("/api/authors/{authorId}/[controller]")]
+    public class CoursesController : ControllerBase
     {
         private readonly ICourseLibraryRepository _repository;
         private readonly IMapper _mapper;
 
-        public CourseController(ICourseLibraryRepository repository, IMapper mapper)
+        public CoursesController(ICourseLibraryRepository repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
@@ -33,7 +33,7 @@ namespace API.Controllers
             return Ok(_mapper.Map<IEnumerable<CourseDto>>(courses));
         }
 
-        [HttpGet("{courseId}")]
+        [HttpGet("{courseId}", Name = "GetCourse")]
         public ActionResult<CourseDto> Get(Guid authorId, Guid courseId)
         {
             if (!_repository.AuthorExists(authorId))
@@ -46,6 +46,17 @@ namespace API.Controllers
                 return NotFound();
             }
             return Ok(_mapper.Map<CourseDto>(course));
+        }
+
+        public ActionResult<CourseDto> Post(Guid authorId, CourseForCreationDto course)
+        {
+            if (!_repository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+            var newCourse = _mapper.Map<Course>(course);
+            _repository.AddCourse(authorId, newCourse);
+            return CreatedAtRoute("GetCourse", new { authorId, courseId = newCourse.Id }, newCourse);
         }
     }
 }
