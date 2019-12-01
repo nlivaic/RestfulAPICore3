@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using API.Entities;
 using API.Models;
 using API.ResourceParameters;
 using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace API.Controllers
 {
@@ -51,6 +51,13 @@ namespace API.Controllers
             _repository.Save();
             var authorDto = _mapper.Map<AuthorDto>(newAuthor);
             return CreatedAtRoute("GetAuthor", new { authorId = authorDto.Id }, authorDto);
+        }
+
+        [HttpOptions]
+        public IActionResult Options()
+        {
+            this.HttpContext.Response.Headers.Add("Allow", "POST,GET,HEAD");
+            return Ok();
         }
     }
 }
