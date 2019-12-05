@@ -1,8 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+using API.ValidationAttributes;
+
 namespace API.Models
 {
-    public class CourseForCreationDto
+    [CourseDtoValidationAttribute(ErrorMessage = "Some custom error")]
+    public class CourseForCreationDto : BaseCourseDto
     {
-        public string Title { get; set; }
-        public string Description { get; set; }
+        [Required]
+        public override string Description { get { return base.Description; } set { base.Description = value; } }
     }
 }
