@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using API.ValidationAttributes;
 
 namespace API.Models
 {
+    [CourseDtoValidationAttribute(ErrorMessage = "Some custom error")]
     public abstract class BaseCourseDto
     {
         [Required]

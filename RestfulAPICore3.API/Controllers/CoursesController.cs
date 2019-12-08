@@ -60,5 +60,10 @@ namespace API.Controllers
             _repository.Save();
             return CreatedAtRoute("GetCourse", new { authorId, courseId = newCourse.Id }, newCourse);
         }
+
+        // public ActionResult Put(Guid authorId, Guid courseId, CourseForUpdateDto course)
+        // {
+
+        // }
     }
 }

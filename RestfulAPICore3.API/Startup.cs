@@ -38,14 +38,13 @@ namespace RestfulAPICore3.API
             {
                 options.InvalidModelStateResponseFactory = context =>
                 {
-                    var problemDetails = new ProblemDetails
+                    var problemDetails = new ValidationProblemDetails(context.ModelState)
                     {
                         Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
                         Title = "One or more validation errors occurred.",
                         Status = StatusCodes.Status422UnprocessableEntity,
                         Detail = "See the errors property for more details.",
-                        Instance = context.HttpContext.Request.Path,
-
+                        Instance = context.HttpContext.Request.Path
                     };
                     problemDetails.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
                     return new UnprocessableEntityObjectResult(problemDetails)
@@ -53,7 +52,8 @@ namespace RestfulAPICore3.API
                         ContentTypes = { "application/problem+json" }
                     };
                 };
-            });
+            })
+            ;
             services.AddDbContext<CourseLibraryContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("CourseLibraryDatabase")));
             services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();

@@ -10,10 +10,9 @@ namespace API.ValidationAttributes
             CourseForCreationDto course = (CourseForCreationDto)value;
             if (course.Title == course.Description)
             {
-                return new ValidationResult($"{nameof(course.Title)} and {nameof(course.Description)} cannot be the same value. {ErrorMessage}");
+                return new ValidationResult($"{nameof(course.Title)} and {nameof(course.Description)} cannot be the same value.", new[] { nameof(CourseForCreationDto) });
             }
             return ValidationResult.Success;
         }
-
     }
 }
