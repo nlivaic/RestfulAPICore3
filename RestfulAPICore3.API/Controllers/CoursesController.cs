@@ -56,6 +56,7 @@ namespace API.Controllers
             }
             var newCourse = _mapper.Map<Course>(course);
             _repository.AddCourse(authorId, newCourse);
+            _repository.Save();
             return CreatedAtRoute("GetCourse", new { authorId, courseId = newCourse.Id }, newCourse);
         }
     }
