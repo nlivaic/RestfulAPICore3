@@ -48,6 +48,7 @@ namespace API.Controllers
             return Ok(_mapper.Map<CourseDto>(course));
         }
 
+        [HttpPost]
         public ActionResult<CourseDto> Post(Guid authorId, CourseForCreationDto course)
         {
             if (!_repository.AuthorExists(authorId))
