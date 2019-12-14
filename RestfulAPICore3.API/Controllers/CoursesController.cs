@@ -61,9 +61,29 @@ namespace API.Controllers
             return CreatedAtRoute("GetCourse", new { authorId, courseId = newCourse.Id }, newCourse);
         }
 
-        // public ActionResult Put(Guid authorId, Guid courseId, CourseForUpdateDto course)
-        // {
+        [HttpPut("{courseId}")]
+        public ActionResult Put(Guid authorId, Guid courseId, CourseForUpdateDto course)
+        {
+            if (!_repository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+            var courseFromRepo = _repository.GetCourse(authorId, courseId);
+            if (course == null)
+            {
+                return NotFound();
+            }
+            // As per REST, we are updating the representation.
+            // Therefore, we should:
+            // 1. Get representation of entity.
+            // 2. Map incoming Dto to that representation.
+            // 3. Map updated representation to entity.
+            // We can mimick those steps with below code directly:
+            _mapper.Map(course, courseFromRepo);
+            _repository.UpdateCourse(courseFromRepo);
+            _repository.Save();
 
-        // }
+            return Ok();
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace API.ValidationAttributes
     {
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            CourseForCreationDto course = (CourseForCreationDto)value;
+            BaseCourseDto course = (BaseCourseDto)value;
             if (course.Title == course.Description)
             {
                 return new ValidationResult($"{nameof(course.Title)} and {nameof(course.Description)} cannot be the same value.", new[] { nameof(CourseForCreationDto) });

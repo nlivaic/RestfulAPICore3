@@ -14,3 +14,6 @@
 ☐ UseException Handler 
     ✔ With an additional terminal middleware returning a message. @done (26. 11. 2019. 10:28:39)
     ☐ And logging the fault.
+
+/***** Privremeni todo, izbrisati zadatke kad su gotovi. *****/
+☐ Opet potestirati POST. Validation atribute je bio hardkodiran na CourseForCreationDto.
