@@ -69,21 +69,27 @@ namespace API.Controllers
                 return NotFound();
             }
             var courseFromRepo = _repository.GetCourse(authorId, courseId);
-            if (course == null)
+            // Insert.
+            if (courseFromRepo == null)
             {
-                return NotFound();
+                var newCourse = _mapper.Map<Course>(course);
+                newCourse.Id = courseId;
+                _repository.AddCourse(authorId, newCourse);
             }
-            // As per REST, we are updating the representation.
-            // Therefore, we should:
-            // 1. Get representation of entity.
-            // 2. Map incoming Dto to that representation.
-            // 3. Map updated representation to entity.
-            // We can mimick those steps with below code directly:
-            _mapper.Map(course, courseFromRepo);
-            _repository.UpdateCourse(courseFromRepo);
+            else    // Update.
+            {
+                // As per REST, we are updating the representation.
+                // Therefore, we should:
+                // 1. Get representation of entity.
+                // 2. Map incoming Dto to that representation.
+                // 3. Map updated representation to entity.
+                // We can mimick those steps with below code directly:
+                _mapper.Map(course, courseFromRepo);
+                _repository.UpdateCourse(courseFromRepo);
+            }
             _repository.Save();
 
-            return Ok();
+            return NoContent();
         }
     }
 }
