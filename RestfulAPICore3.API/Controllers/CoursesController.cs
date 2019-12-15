@@ -75,6 +75,9 @@ namespace API.Controllers
                 var newCourse = _mapper.Map<Course>(course);
                 newCourse.Id = courseId;
                 _repository.AddCourse(authorId, newCourse);
+                _repository.Save();
+                var courseDto = _mapper.Map<CourseDto>(newCourse);
+                return CreatedAtRoute("GetCourse", new { authorId, courseId }, courseDto);
             }
             else    // Update.
             {
@@ -86,10 +89,9 @@ namespace API.Controllers
                 // We can mimick those steps with below code directly:
                 _mapper.Map(course, courseFromRepo);
                 _repository.UpdateCourse(courseFromRepo);
+                _repository.Save();
+                return NoContent();
             }
-            _repository.Save();
-
-            return NoContent();
         }
     }
 }

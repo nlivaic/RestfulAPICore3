@@ -14,6 +14,9 @@
 ☐ UseException Handler 
     ✔ With an additional terminal middleware returning a message. @done (26. 11. 2019. 10:28:39)
     ☐ And logging the fault.
+☐ Validating Patch
+    ☐ To validate model, manually call ValidateModel. If false, return ValidationProblem (feed it with ValidationProblemDetails).
+    ☐ JsonPatchDocument<T>.ApplyTo() can fail if it contains unprocessable operations (e.g. target property does not exist).
 
 /***** Privremeni todo, izbrisati zadatke kad su gotovi. *****/
 ☐ Opet potestirati POST. Validation atribute je bio hardkodiran na CourseForCreationDto.
