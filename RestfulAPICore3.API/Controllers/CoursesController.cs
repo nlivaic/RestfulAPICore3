@@ -5,6 +5,7 @@ using API.Entities;
 using API.Models;
 using API.Services;
 using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -88,6 +89,44 @@ namespace API.Controllers
                 // 3. Map updated representation to entity.
                 // We can mimick those steps with below code directly:
                 _mapper.Map(course, courseFromRepo);
+                _repository.UpdateCourse(courseFromRepo);
+                _repository.Save();
+                return NoContent();
+            }
+        }
+
+        [HttpPatch("{courseId}")]
+        public IActionResult Patch(Guid authorId, Guid courseId, [FromBody] JsonPatchDocument<CourseForUpdateDto> course)
+        {
+            if (!_repository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+            var courseFromRepo = _repository.GetCourse(authorId, courseId);
+            // Insert
+            if (courseFromRepo == null)
+            {
+                var courseForUpdateDto = new CourseForUpdateDto();
+                course.ApplyTo(courseForUpdateDto, ModelState);
+                if (!TryValidateModel(courseForUpdateDto))
+                {
+                    return ValidationProblem(ModelState);
+                }
+                var courseToAdd = _mapper.Map<Course>(courseForUpdateDto);
+                courseToAdd.Id = courseId;
+                _repository.AddCourse(authorId, courseToAdd);
+                _repository.Save();
+                return CreatedAtRoute("GetCourse", new { authorId, courseId }, courseToAdd);
+            }
+            else    // Update
+            {
+                var courseForUpdateDto = _mapper.Map<CourseForUpdateDto>(courseFromRepo);
+                course.ApplyTo(courseForUpdateDto, ModelState);
+                if (!TryValidateModel(courseForUpdateDto))
+                {
+                    return ValidationProblem(ModelState);
+                }
+                _mapper.Map(courseForUpdateDto, courseFromRepo);
                 _repository.UpdateCourse(courseFromRepo);
                 _repository.Save();
                 return NoContent();
