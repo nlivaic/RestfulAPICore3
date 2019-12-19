@@ -1,23 +1,25 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using API.BaseControllers;
 using API.Entities;
+using API.Helpers;
 using API.Models;
 using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("/api/authors/{authorId}/[controller]")]
-    public class CoursesController : ControllerBase
+    public class CoursesController : ApiControllerBase
     {
         private readonly ICourseLibraryRepository _repository;
         private readonly IMapper _mapper;
 
-        public CoursesController(ICourseLibraryRepository repository, IMapper mapper)
+        public CoursesController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory)
+            : base(invalidModelResultFactory)
         {
             _repository = repository;
             _mapper = mapper;
@@ -110,7 +112,7 @@ namespace API.Controllers
                 course.ApplyTo(courseForUpdateDto, ModelState);
                 if (!TryValidateModel(courseForUpdateDto))
                 {
-                    return ValidationProblem(ModelState);
+                    return UnprocessableEntity();
                 }
                 var courseToAdd = _mapper.Map<Course>(courseForUpdateDto);
                 courseToAdd.Id = courseId;
@@ -124,13 +126,26 @@ namespace API.Controllers
                 course.ApplyTo(courseForUpdateDto, ModelState);
                 if (!TryValidateModel(courseForUpdateDto))
                 {
-                    return ValidationProblem(ModelState);
+                    return UnprocessableEntity();
                 }
                 _mapper.Map(courseForUpdateDto, courseFromRepo);
                 _repository.UpdateCourse(courseFromRepo);
                 _repository.Save();
                 return NoContent();
             }
+        }
+
+        [HttpDelete("{courseId}")]
+        public IActionResult Delete(Guid authorId, Guid courseId)
+        {
+            var course = _repository.GetCourse(authorId, courseId);
+            if (course == null)
+            {
+                return NotFound();
+            }
+            _repository.DeleteCourse(course);
+            _repository.Save();
+            return NoContent();
         }
     }
 }

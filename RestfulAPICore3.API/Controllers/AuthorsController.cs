@@ -1,23 +1,25 @@
 using System;
 using System.Collections.Generic;
+using API.BaseControllers;
 using API.Entities;
+using API.Helpers;
 using API.Models;
 using API.ResourceParameters;
 using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
-    public class AuthorsController : ControllerBase
+    public class AuthorsController : ApiControllerBase
     {
         private readonly ICourseLibraryRepository _repository;
         private readonly IMapper _mapper;
 
-        public AuthorsController(ICourseLibraryRepository repository, IMapper mapper)
+        public AuthorsController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory)
+            : base(invalidModelResultFactory)
         {
             _repository = repository;
             _mapper = mapper;
@@ -51,6 +53,19 @@ namespace API.Controllers
             _repository.Save();
             var authorDto = _mapper.Map<AuthorDto>(newAuthor);
             return CreatedAtRoute("GetAuthor", new { authorId = authorDto.Id }, authorDto);
+        }
+
+        [HttpDelete("{authorId}")]
+        public IActionResult Delete(Guid authorId)
+        {
+            var author = _repository.GetAuthor(authorId);
+            if (author == null)
+            {
+                return NotFound();
+            }
+            _repository.DeleteAuthor(author);
+            _repository.Save();
+            return NoContent();
         }
 
         [HttpOptions]

@@ -1,18 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using API.Models;
-using API.Services;
-using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
+using API.Helpers;
+using API.Models;
+using API.Services;
+using AutoMapper;
+using Newtonsoft.Json.Serialization;
 
 namespace RestfulAPICore3.API
 {
@@ -28,6 +26,8 @@ namespace RestfulAPICore3.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IValidationProblemDetailsFactory, ValidationProblemDetailsFactory>();
+            services.AddSingleton<IInvalidModelResultFactory, InvalidModelResultFactory>();
             services.AddControllers(configure =>
             {
                 configure.ReturnHttpNotAcceptable = true;
@@ -36,24 +36,10 @@ namespace RestfulAPICore3.API
             .AddXmlDataContractSerializerFormatters()
             .ConfigureApiBehaviorOptions(options =>
             {
-                options.InvalidModelStateResponseFactory = context =>
-                {
-                    var problemDetails = new ValidationProblemDetails(context.ModelState)
-                    {
-                        Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                        Title = "One or more validation errors occurred.",
-                        Status = StatusCodes.Status422UnprocessableEntity,
-                        Detail = "See the errors property for more details.",
-                        Instance = context.HttpContext.Request.Path
-                    };
-                    problemDetails.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-                    return new UnprocessableEntityObjectResult(problemDetails)
-                    {
-                        ContentTypes = { "application/problem+json" }
-                    };
-                };
-            })
-            ;
+                var serviceProvider = services.BuildServiceProvider();
+                var unprocessableEntityFactory = serviceProvider.GetService<IInvalidModelResultFactory>();
+                options.InvalidModelStateResponseFactory = unprocessableEntityFactory.Create;
+            });
             services.AddDbContext<CourseLibraryContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("CourseLibraryDatabase")));
             services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();

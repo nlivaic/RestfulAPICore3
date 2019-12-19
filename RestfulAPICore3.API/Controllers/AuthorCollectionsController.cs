@@ -7,17 +7,19 @@ using System;
 using API.Helpers;
 using API.Entities;
 using System.Linq;
+using API.BaseControllers;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthorCollectionsController : ControllerBase
+    public class AuthorCollectionsController : ApiControllerBase
     {
         private readonly ICourseLibraryRepository _repository;
         private readonly IMapper _mapper;
 
-        public AuthorCollectionsController(ICourseLibraryRepository repository, IMapper mapper)
+        public AuthorCollectionsController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory)
+            : base(invalidModelResultFactory)
         {
             _repository = repository;
             _mapper = mapper;
