@@ -36,10 +36,10 @@ namespace API.Controllers
             _repository.Save();
             var newAuthorIds = string.Join(',', newAuthors.Select(a => a.Id.ToString()).ToArray());
             var authorsToReturn = _mapper.Map<IEnumerable<AuthorDto>>(newAuthors);
-            return CreatedAtRoute("GetAuthors", new { authorIds = newAuthorIds }, authorsToReturn);
+            return CreatedAtRoute("GetAuthorCollections", new { authorIds = newAuthorIds }, authorsToReturn);
         }
 
-        [HttpGet("{authorIds}", Name = "GetAuthors")]
+        [HttpGet("{authorIds}", Name = "GetAuthorCollections")]
         public ActionResult<IEnumerable<AuthorDto>> Get(
             [FromRoute]
             [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> authorIds)

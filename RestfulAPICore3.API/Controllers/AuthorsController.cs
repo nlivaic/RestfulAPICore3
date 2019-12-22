@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using API.BaseControllers;
 using API.Entities;
 using API.Helpers;
@@ -8,6 +9,7 @@ using API.ResourceParameters;
 using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace API.Controllers
 {
@@ -25,11 +27,14 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpGet(Name = "GetAuthors")]
         [HttpHead]
         public ActionResult<IEnumerable<AuthorDto>> Get([FromQuery] AuthorsResourceParameters authorsResourceParameters)
         {
-            var authors = _mapper.Map<IEnumerable<AuthorDto>>(_repository.GetAuthors(authorsResourceParameters));
+            var pagedAuthors = _repository.GetAuthors(authorsResourceParameters);
+            var authors = _mapper.Map<IEnumerable<AuthorDto>>(pagedAuthors);
+            var paging = CreatePagingDto(pagedAuthors, authorsResourceParameters);
+            Response.Headers.Add("X-Pagination", new StringValues(JsonSerializer.Serialize(paging)));
             return Ok(authors);
         }
 
@@ -73,6 +78,38 @@ namespace API.Controllers
         {
             this.HttpContext.Response.Headers.Add("Allow", "POST,GET,HEAD");
             return Ok();
+        }
+
+        private PagingDto CreatePagingDto(PagedList<Author> pagedAuthors, AuthorsResourceParameters authorsResourceParameters)
+        {
+            var paging = new PagingDto(
+                pagedAuthors.CurrentPage,
+                pagedAuthors.TotalPages,
+                pagedAuthors.TotalItems,
+                pagedAuthors.HasPreviousPage
+                    ? this.Url.Link(
+                        "GetAuthors",
+                        new
+                        {
+                            authorsResourceParameters.MainCategory,
+                            authorsResourceParameters.SearchQuery,
+                            PageNumber = pagedAuthors.CurrentPage - 1,
+                            authorsResourceParameters.PageSize
+                        })
+                    : null,
+                pagedAuthors.HasNextPage
+                    ? this.Url.Link(
+                        "GetAuthors",
+                        new
+                        {
+                            authorsResourceParameters.MainCategory,
+                            authorsResourceParameters.SearchQuery,
+                            PageNumber = pagedAuthors.CurrentPage + 1,
+                            authorsResourceParameters.PageSize
+                        })
+                    : null
+                );
+            return paging;
         }
     }
 }

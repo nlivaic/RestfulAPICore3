@@ -4,16 +4,19 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Entities;
 using API.ResourceParameters;
+using API.Helpers;
 
 namespace API.Services
 {
     public class CourseLibraryRepository : ICourseLibraryRepository, IDisposable
     {
         private readonly CourseLibraryContext _context;
+        private readonly IPagingService _pagingService;
 
-        public CourseLibraryRepository(CourseLibraryContext context)
+        public CourseLibraryRepository(CourseLibraryContext context, IPagingService pagingService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _pagingService = pagingService;
         }
 
         public void AddCourse(Guid authorId, Course course)
@@ -123,14 +126,8 @@ namespace API.Services
             return _context.Authors.ToList<Author>();
         }
 
-        public IEnumerable<Author> GetAuthors(AuthorsResourceParameters authorsResourceParameters)
+        public PagedList<Author> GetAuthors(AuthorsResourceParameters authorsResourceParameters)
         {
-            if (string.IsNullOrEmpty(authorsResourceParameters.MainCategory) &&
-                string.IsNullOrEmpty(authorsResourceParameters.SearchQuery))
-            {
-                return GetAuthors();
-            }
-
             var query = _context.Authors as IQueryable<Author>;
             if (!string.IsNullOrEmpty(authorsResourceParameters.MainCategory))
             {
@@ -143,7 +140,10 @@ namespace API.Services
                     a.FirstName.Contains(authorsResourceParameters.SearchQuery) ||
                     a.LastName.Contains(authorsResourceParameters.SearchQuery));
             }
-            return query.ToList();
+            query = query
+                .OrderBy(author => author.LastName)
+                .ThenBy(author => author.FirstName);
+            return _pagingService.PageList(query, authorsResourceParameters.PageNumber, authorsResourceParameters.PageSize);
         }
 
         public IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds)
