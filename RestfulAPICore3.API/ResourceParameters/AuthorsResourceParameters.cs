@@ -2,7 +2,7 @@ namespace API.ResourceParameters
 {
     public class AuthorsResourceParameters
     {
-        private int _maximumPageSize = 10;
+        private const int _maximumPageSize = 10;
         private int _pageSize = 5;
 
         public string MainCategory { get; set; }
@@ -13,7 +13,7 @@ namespace API.ResourceParameters
             get => _pageSize;
             set
             {
-                _pageSize = (value > _maximumPageSize) ? _pageSize : value;
+                _pageSize = (value > _maximumPageSize) ? _maximumPageSize : value;
             }
         }
     }
