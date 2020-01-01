@@ -29,6 +29,7 @@ namespace RestfulAPICore3.API
             services.AddSingleton<IValidationProblemDetailsFactory, ValidationProblemDetailsFactory>();
             services.AddSingleton<IInvalidModelResultFactory, InvalidModelResultFactory>();
             services.AddSingleton<IPagingService, PagingService>();
+            services.AddTransient<IPropertyMappingService, PropertyMappingService>();
             services.AddControllers(configure =>
             {
                 configure.ReturnHttpNotAcceptable = true;

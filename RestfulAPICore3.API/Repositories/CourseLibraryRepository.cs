@@ -12,11 +12,13 @@ namespace API.Services
     {
         private readonly CourseLibraryContext _context;
         private readonly IPagingService _pagingService;
+        private readonly IPropertyMappingService _propertyMappingService;
 
-        public CourseLibraryRepository(CourseLibraryContext context, IPagingService pagingService)
+        public CourseLibraryRepository(CourseLibraryContext context, IPagingService pagingService, IPropertyMappingService propertyMappingService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _pagingService = pagingService;
+            _propertyMappingService = propertyMappingService;
         }
 
         public void AddCourse(Guid authorId, Course course)
@@ -140,9 +142,22 @@ namespace API.Services
                     a.FirstName.Contains(authorsResourceParameters.SearchQuery) ||
                     a.LastName.Contains(authorsResourceParameters.SearchQuery));
             }
-            query = query
-                .OrderBy(author => author.LastName)
-                .ThenBy(author => author.FirstName);
+            if (!string.IsNullOrEmpty(authorsResourceParameters.OrderBy))
+            {
+                var orderByCriteria = authorsResourceParameters.OrderByWithDirection();
+                var targetProperties = _propertyMappingService
+                    .GetMappings<AuthorDto, Author>(
+                        orderByCriteria.Select(o => o.Item1).ToArray());
+                targetProperties.ToList()
+                    .ForEach(
+                        tp => tp.Revert = orderByCriteria
+                            .Single(o => string.Equals(o.Item1, tp.SourcePropertyName, StringComparison.OrdinalIgnoreCase))
+                            .Item2 == OrderingDirection.Asc
+                                ? tp.Revert
+                                : !tp.Revert
+                    );
+                query = query.ApplySort(targetProperties);
+            }
             return _pagingService.PageList(query, authorsResourceParameters.PageNumber, authorsResourceParameters.PageSize);
         }
 
