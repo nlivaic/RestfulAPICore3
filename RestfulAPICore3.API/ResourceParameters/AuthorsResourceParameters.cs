@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using API.Exceptions;
 using API.Extensions;
 using API.Models;
 
@@ -34,7 +35,7 @@ namespace API.ResourceParameters
                         && !Enum.TryParse(orderByCriteriaWithDirection[1].CapitalizeFirstLetter(),
                         out orderByDirection))
                     {
-                        throw new ArgumentException($"Unknown ordering direction: {orderByCriteriaWithDirection[1]}");
+                        throw new InvalidOrderByCriteriaException($"Unknown ordering direction: {orderByCriteriaWithDirection[1]}");
                     }
                     return (
                         OrderByCriteria: orderByCriteriaWithDirection[0],

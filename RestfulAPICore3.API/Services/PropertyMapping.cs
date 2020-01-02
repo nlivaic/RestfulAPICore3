@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using API.Exceptions;
 
 namespace API.Services
 {
@@ -32,7 +33,7 @@ namespace API.Services
             _propertyMappingValues.TryGetValue(sourcePropertyName, out propertyMappingValue);
             return
                 propertyMappingValue
-                ?? throw new ArgumentException($"Source property name '{sourcePropertyName}' for source type {typeof(TSource)} not mapped to target type {typeof(TTarget)}.");
+                ?? throw new InvalidOrderByCriteriaException($"Source property name '{sourcePropertyName}' for source type {typeof(TSource)} not mapped to target type {typeof(TTarget)}.");
         }
 
         public IEnumerable<PropertyMappingValue> GetMappings(params string[] sourcePropertyNames)
@@ -44,7 +45,7 @@ namespace API.Services
                 _propertyMappingValues.TryGetValue(sourcePropertyName, out propertyMappingValue);
                 if (propertyMappingValue == null)
                 {
-                    throw new ArgumentException($"Source property name '{sourcePropertyName}' for source type {typeof(TSource)} not mapped to target type {typeof(TTarget)}.");
+                    throw new InvalidOrderByCriteriaException($"Source property name '{sourcePropertyName}' for source type {typeof(TSource)} not mapped to target type {typeof(TTarget)}.");
                 }
                 propertyMappingValues.Add(propertyMappingValue);
 

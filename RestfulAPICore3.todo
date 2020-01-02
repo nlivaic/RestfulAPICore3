@@ -19,4 +19,23 @@
     ☐ JsonPatchDocument<T>.ApplyTo() can fail if it contains unprocessable operations (e.g. target property does not exist).
 
 /***** Privremeni todo, izbrisati zadatke kad su gotovi. *****/
-☐ Opet potestirati POST. Validation atribute je bio hardkodiran na CourseForCreationDto.
+☐ Razraditi sve caseve za Patch u Postmanu.
+☐ Neki build warning: Calling 'BuildServiceProvider' from application code results in an additional copy of singleton services being created.
+    ☐ Da li je BuildServiceProvider uopće pravi smjer? Razmisliti, istražiti.
+☐ Kako pri model bindanju razlikovati binding error od validation errora?
+    ☐ https://stackoverflow.com/questions/45941246/how-to-discern-between-model-binding-errors-and-model-validation-errors/52830010
+    ☐ This is a bit hacky. I used ModelState.Root.ValidationState to discern binding errors from validation errors, but this approach does not differentiate between failed binding and failed validation.
+☐ Paging
+    ✔ Add to Dto @done (21. 12. 2019. 15:22:38)
+    ✔ Dto: add maximum page size. @done (21. 12. 2019. 19:23:07)
+    ✔ Missing pageSize and pageNumber cause 422. This ok? -> Ok. @done (21. 12. 2019. 19:18:52)
+    ✔ IPagingService @done (21. 12. 2019. 19:06:46)
+    ✔ Inject IPagingService to Repo. @done (21. 12. 2019. 19:06:45)
+    ✔ PagedList<T> @done (21. 12. 2019. 19:06:44)
+    ☐ Pagination metadata
+        ☐ Paging header method in AuthorsController should be revisited.
+☐ Sorting
+    ✔ Move .OrderBy into an extension method. @done (28. 12. 2019. 22:00:17)
+    ✔ Allow for multiple order by criteria in query string. @done (28. 12. 2019. 22:55:27)
+    ☐ Allow for reversing ordering from the query string.
+    ☐ Kad se upiše glupost za sorting, vrati se 500. Mislim da bi se trebalo vratiti 400, jer je klijent taj koji je poslao krivi podatak.

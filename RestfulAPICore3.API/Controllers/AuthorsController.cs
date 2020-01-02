@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using API.BaseControllers;
 using API.Entities;
+using API.Exceptions;
 using API.Helpers;
 using API.Models;
 using API.ResourceParameters;
@@ -19,19 +20,30 @@ namespace API.Controllers
     {
         private readonly ICourseLibraryRepository _repository;
         private readonly IMapper _mapper;
+        private readonly IPropertyMappingService _propertyMappingService;
 
-        public AuthorsController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory)
+        public AuthorsController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory, IPropertyMappingService propertyMappingService)
             : base(invalidModelResultFactory)
         {
             _repository = repository;
             _mapper = mapper;
+            _propertyMappingService = propertyMappingService;
         }
 
         [HttpGet(Name = "GetAuthors")]
         [HttpHead]
         public ActionResult<IEnumerable<AuthorDto>> Get([FromQuery] AuthorsResourceParameters authorsResourceParameters)
         {
-            var pagedAuthors = _repository.GetAuthors(authorsResourceParameters);
+            PagedList<Author> pagedAuthors = null;
+            try
+            {
+                pagedAuthors = _repository.GetAuthors(authorsResourceParameters);
+            }
+            catch (InvalidOrderByCriteriaException ex)
+            {
+                ModelState.AddModelError(nameof(AuthorsResourceParameters.OrderBy), ex.Message);
+                return UnprocessableEntity();
+            }
             var authors = _mapper.Map<IEnumerable<AuthorDto>>(pagedAuthors);
             var paging = CreatePagingDto(pagedAuthors, authorsResourceParameters);
             Response.Headers.Add("X-Pagination", new StringValues(JsonSerializer.Serialize(paging)));
@@ -93,6 +105,7 @@ namespace API.Controllers
                         {
                             authorsResourceParameters.MainCategory,
                             authorsResourceParameters.SearchQuery,
+                            authorsResourceParameters.OrderBy,
                             PageNumber = pagedAuthors.CurrentPage - 1,
                             authorsResourceParameters.PageSize
                         })
@@ -104,6 +117,7 @@ namespace API.Controllers
                         {
                             authorsResourceParameters.MainCategory,
                             authorsResourceParameters.SearchQuery,
+                            authorsResourceParameters.OrderBy,
                             PageNumber = pagedAuthors.CurrentPage + 1,
                             authorsResourceParameters.PageSize
                         })
