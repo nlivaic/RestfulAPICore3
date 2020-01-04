@@ -1,6 +1,7 @@
 using System.Linq;
+using API.Helpers;
 
-namespace API.Helpers
+namespace API.Services
 {
     public interface IPagingService
     {

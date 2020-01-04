@@ -26,7 +26,8 @@ namespace RestfulAPICore3.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IValidationProblemDetailsFactory, ValidationProblemDetailsFactory>();
+            services.AddTransient<IValidationProblemDetailsFactory, ValidationProblemDetailsFactory>();
+            services.AddTransient<IDataShapingService, DataShapingService>();
             services.AddSingleton<IInvalidModelResultFactory, InvalidModelResultFactory>();
             services.AddSingleton<IPagingService, PagingService>();
             services.AddTransient<IPropertyMappingService, PropertyMappingService>();

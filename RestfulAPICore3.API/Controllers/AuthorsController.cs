@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using API.BaseControllers;
 using API.Entities;
@@ -21,32 +22,49 @@ namespace API.Controllers
         private readonly ICourseLibraryRepository _repository;
         private readonly IMapper _mapper;
         private readonly IPropertyMappingService _propertyMappingService;
+        private readonly IDataShapingService _dataShapingService;
 
-        public AuthorsController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory, IPropertyMappingService propertyMappingService)
+        public AuthorsController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory, IPropertyMappingService propertyMappingService, IDataShapingService dataShapingService)
             : base(invalidModelResultFactory)
         {
             _repository = repository;
             _mapper = mapper;
             _propertyMappingService = propertyMappingService;
+            _dataShapingService = dataShapingService;
         }
 
         [HttpGet(Name = "GetAuthors")]
         [HttpHead]
-        public ActionResult<IEnumerable<AuthorDto>> Get([FromQuery] AuthorsResourceParameters authorsResourceParameters)
+        public IActionResult Get([FromQuery] AuthorsResourceParameters authorsResourceParameters)
         {
             PagedList<Author> pagedAuthors = null;
             try
             {
                 pagedAuthors = _repository.GetAuthors(authorsResourceParameters);
             }
-            catch (InvalidOrderByCriteriaException ex)
+            catch (InvalidPropertyMappingException ex)
             {
                 ModelState.AddModelError(nameof(AuthorsResourceParameters.OrderBy), ex.Message);
                 return UnprocessableEntity();
             }
-            var authors = _mapper.Map<IEnumerable<AuthorDto>>(pagedAuthors);
+            var authorsDto = _mapper.Map<IEnumerable<AuthorDto>>(pagedAuthors);
             var paging = CreatePagingDto(pagedAuthors, authorsResourceParameters);
             Response.Headers.Add("X-Pagination", new StringValues(JsonSerializer.Serialize(paging)));
+            // Data shaping service handles the case when fields are empty, resulting in all fields being sent to the client.
+            // This is an expensive operation which in essence doesn't do anything since we already have the authors DTO,
+            // so we are circumventing it since we know up front when no fields have been sent to us.
+            object authors = null;
+            try
+            {
+                authors = authorsResourceParameters.Fields.Any()
+                    ? (object)_dataShapingService.ShapeData(authorsDto, authorsResourceParameters.Fields)
+                    : authorsDto;
+            }
+            catch (InvalidPropertyMappingException ex)
+            {
+                ModelState.AddModelError(nameof(AuthorsResourceParameters.Fields), ex.Message);
+                return UnprocessableEntity();
+            }
             return Ok(authors);
         }
 

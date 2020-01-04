@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Exceptions;
 using API.Extensions;
+using API.Helpers;
 using API.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.ResourceParameters
 {
@@ -15,6 +17,8 @@ namespace API.ResourceParameters
         public string MainCategory { get; set; }
         public string SearchQuery { get; set; }
         public string OrderBy { get; set; } = "Name";
+        [BindProperty(BinderType = typeof(ArrayModelBinder))]
+        public IEnumerable<string> Fields { get; set; } = new List<string>();
         public int PageNumber { get; set; } = 1;
         public int PageSize
         {
@@ -35,7 +39,7 @@ namespace API.ResourceParameters
                         && !Enum.TryParse(orderByCriteriaWithDirection[1].CapitalizeFirstLetter(),
                         out orderByDirection))
                     {
-                        throw new InvalidOrderByCriteriaException($"Unknown ordering direction: {orderByCriteriaWithDirection[1]}");
+                        throw new InvalidPropertyMappingException($"Unknown ordering direction: {orderByCriteriaWithDirection[1]}");
                     }
                     return (
                         OrderByCriteria: orderByCriteriaWithDirection[0],
