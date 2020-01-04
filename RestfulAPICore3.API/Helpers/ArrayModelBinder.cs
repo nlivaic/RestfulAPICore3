@@ -2,17 +2,13 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using API.Exceptions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace API.Helpers
 {
     public class ArrayModelBinder : IModelBinder
     {
-        public ArrayModelBinder()
-        {
-
-        }
-
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             var modelName = bindingContext.ModelName;
@@ -35,10 +31,21 @@ namespace API.Helpers
                 return Task.CompletedTask;
             }
             var converter = TypeDescriptor.GetConverter(elementType);
-            var convertedValues = modelValue
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(mv => converter.ConvertFrom(mv.Trim()))
-                .ToArray();
+            object[] convertedValues = null;
+            try
+            {
+                convertedValues = modelValue
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(mv => converter.ConvertFrom(mv.Trim()))
+                    .ToArray();
+            }
+            catch (InvalidPropertyMappingException ex)
+            {
+                bindingContext.Result = ModelBindingResult.Failed();
+                bindingContext.ModelState.Root.ValidationState = ModelValidationState.Invalid;
+                bindingContext.ModelState.AddModelError(string.Empty, ex.Message);
+                return Task.CompletedTask;
+            }
             var valuesArray = System.Array.CreateInstance(elementType, convertedValues.Length);
             convertedValues.CopyTo(valuesArray, 0);
             bindingContext.Result = ModelBindingResult.Success(valuesArray);

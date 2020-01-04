@@ -32,26 +32,6 @@ namespace API.ResourceParameters
             }
         }
 
-        // public IEnumerable<ValueTuple<string, OrderingDirection>> OrderByWithDirection() => OrderBy
-        //         .Split(',')
-        //         .Select(s =>
-        //         {
-        //             var orderByCriteriaWithDirection = s.Split(' ');
-        //             OrderingDirection orderByDirection = OrderingDirection.Asc;     // Default value.
-        //             if (orderByCriteriaWithDirection.Length > 1
-        //                 && !Enum.TryParse(orderByCriteriaWithDirection[1].CapitalizeFirstLetter(),
-        //                 out orderByDirection))
-        //             {
-        //                 throw new InvalidPropertyMappingException($"Unknown ordering direction: {orderByCriteriaWithDirection[1]}");
-        //             }
-        //             return (
-        //                 OrderByCriteria: orderByCriteriaWithDirection[0],
-        //                 OrderByDirection: orderByDirection);
-        //         });
-
-        // [BindProperty(BinderType = typeof(ArrayModelBinder))]
-        // public IEnumerable<OrderingCriteriaDto> OrderBy2 { get; set; } = new List<OrderingCriteriaDto>();
-
         [TypeConverter(typeof(OrderingDirectionDtoConverter))]
         public class OrderingCriteriaDto
         {
