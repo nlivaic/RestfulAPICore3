@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using API.Exceptions;
 using API.Extensions;
@@ -45,5 +46,17 @@ namespace API.ResourceParameters
                         OrderByCriteria: orderByCriteriaWithDirection[0],
                         OrderByDirection: orderByDirection);
                 });
+
+        [BindProperty(BinderType = typeof(ArrayModelBinder))]
+        public IEnumerable<OrderingCriteriaDto> OrderBy2 { get; set; } = new List<OrderingCriteriaDto>();
+
+        [TypeConverter(typeof(OrderingDirectionDtoConverter))]
+        public class OrderingCriteriaDto
+        {
+            public string OrderByCriteria { get; set; }
+            public OrderingDirection OrderingDirection { get; set; }
+
+            public override string ToString() => $"{OrderByCriteria} {OrderingDirection.ToString().ToLower()}";
+        }
     }
 }
