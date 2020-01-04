@@ -17,7 +17,9 @@ namespace API.ResourceParameters
 
         public string MainCategory { get; set; }
         public string SearchQuery { get; set; }
-        public string OrderBy { get; set; } = "Name";
+        [BindProperty(BinderType = typeof(ArrayModelBinder))]
+        public IEnumerable<OrderingCriteriaDto> OrderBy { get; set; }
+            = new List<OrderingCriteriaDto> { new OrderingCriteriaDto { OrderByCriteria = "Name", OrderingDirection = OrderingDirection.Asc } };
         [BindProperty(BinderType = typeof(ArrayModelBinder))]
         public IEnumerable<string> Fields { get; set; } = new List<string>();
         public int PageNumber { get; set; } = 1;
@@ -30,25 +32,25 @@ namespace API.ResourceParameters
             }
         }
 
-        public IEnumerable<ValueTuple<string, OrderingDirection>> OrderByWithDirection() => OrderBy
-                .Split(',')
-                .Select(s =>
-                {
-                    var orderByCriteriaWithDirection = s.Split(' ');
-                    OrderingDirection orderByDirection = OrderingDirection.Asc;     // Default value.
-                    if (orderByCriteriaWithDirection.Length > 1
-                        && !Enum.TryParse(orderByCriteriaWithDirection[1].CapitalizeFirstLetter(),
-                        out orderByDirection))
-                    {
-                        throw new InvalidPropertyMappingException($"Unknown ordering direction: {orderByCriteriaWithDirection[1]}");
-                    }
-                    return (
-                        OrderByCriteria: orderByCriteriaWithDirection[0],
-                        OrderByDirection: orderByDirection);
-                });
+        // public IEnumerable<ValueTuple<string, OrderingDirection>> OrderByWithDirection() => OrderBy
+        //         .Split(',')
+        //         .Select(s =>
+        //         {
+        //             var orderByCriteriaWithDirection = s.Split(' ');
+        //             OrderingDirection orderByDirection = OrderingDirection.Asc;     // Default value.
+        //             if (orderByCriteriaWithDirection.Length > 1
+        //                 && !Enum.TryParse(orderByCriteriaWithDirection[1].CapitalizeFirstLetter(),
+        //                 out orderByDirection))
+        //             {
+        //                 throw new InvalidPropertyMappingException($"Unknown ordering direction: {orderByCriteriaWithDirection[1]}");
+        //             }
+        //             return (
+        //                 OrderByCriteria: orderByCriteriaWithDirection[0],
+        //                 OrderByDirection: orderByDirection);
+        //         });
 
-        [BindProperty(BinderType = typeof(ArrayModelBinder))]
-        public IEnumerable<OrderingCriteriaDto> OrderBy2 { get; set; } = new List<OrderingCriteriaDto>();
+        // [BindProperty(BinderType = typeof(ArrayModelBinder))]
+        // public IEnumerable<OrderingCriteriaDto> OrderBy2 { get; set; } = new List<OrderingCriteriaDto>();
 
         [TypeConverter(typeof(OrderingDirectionDtoConverter))]
         public class OrderingCriteriaDto

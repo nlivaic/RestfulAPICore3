@@ -142,17 +142,17 @@ namespace API.Services
                     a.FirstName.Contains(authorsResourceParameters.SearchQuery) ||
                     a.LastName.Contains(authorsResourceParameters.SearchQuery));
             }
-            if (!string.IsNullOrEmpty(authorsResourceParameters.OrderBy))
+            if (authorsResourceParameters.OrderBy.Any())
             {
-                var orderByCriteria = authorsResourceParameters.OrderByWithDirection();
+                var orderByCriteria = authorsResourceParameters.OrderBy;
                 var targetProperties = _propertyMappingService
                     .GetMappings<AuthorDto, Author>(
-                        orderByCriteria.Select(o => o.Item1).ToArray());
+                        orderByCriteria.Select(o => o.OrderByCriteria).ToArray());
                 targetProperties.ToList()
                     .ForEach(
                         tp => tp.Revert = orderByCriteria
-                            .Single(o => string.Equals(o.Item1, tp.SourcePropertyName, StringComparison.OrdinalIgnoreCase))
-                            .Item2 == OrderingDirection.Asc
+                            .Single(o => string.Equals(o.OrderByCriteria, tp.SourcePropertyName, StringComparison.OrdinalIgnoreCase))
+                            .OrderingDirection == OrderingDirection.Asc
                                 ? tp.Revert
                                 : !tp.Revert
                     );
