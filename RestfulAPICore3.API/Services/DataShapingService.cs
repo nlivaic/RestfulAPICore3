@@ -9,7 +9,9 @@ namespace API.Services
     public interface IDataShapingService
     {
         IEnumerable<ExpandoObject> ShapeData<T>(IEnumerable<T> data, IEnumerable<string> properties);
-        ExpandoObject ShapeData<T>(T data, params string[] properties);
+        IEnumerable<ExpandoObject> ShapeData<T>(IEnumerable<T> data);
+        ExpandoObject ShapeData<T>(T data, IEnumerable<string> properties);
+        ExpandoObject ShapeData<T>(T data);
     }
 
     public class DataShapingService : IDataShapingService
@@ -49,10 +51,13 @@ namespace API.Services
             return shapedData;
         }
 
-        public ExpandoObject ShapeData<T>(T data, params string[] properties)
+        public IEnumerable<ExpandoObject> ShapeData<T>(IEnumerable<T> data)
+            => ShapeData(data, new List<string>());
+
+        public ExpandoObject ShapeData<T>(T data, IEnumerable<string> properties)
         {
 
-            if (properties.Length == 0)
+            if (properties.Count() == 0)
             {
                 return new ExpandoObject();
             }
@@ -75,5 +80,8 @@ namespace API.Services
             );
             return shapedTarget;
         }
+
+        public ExpandoObject ShapeData<T>(T data)
+            => ShapeData(data, new List<string>());
     }
 }
