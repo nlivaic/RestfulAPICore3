@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -18,6 +19,10 @@ namespace API.Services
     {
         public IEnumerable<ExpandoObject> ShapeData<T>(IEnumerable<T> data, IEnumerable<string> properties)
         {
+            if (properties == null)
+            {
+                throw new ArgumentException("Properties cannot be null.");
+            }
             List<PropertyInfo> propertyInfos = new List<PropertyInfo>();
             if (!properties.Any())
             {
@@ -57,11 +62,15 @@ namespace API.Services
         public ExpandoObject ShapeData<T>(T data, IEnumerable<string> properties)
         {
 
-            if (properties.Count() == 0)
+            if (properties == null)
             {
-                return new ExpandoObject();
+                throw new ArgumentException("Properties cannot be null.");
             }
             List<PropertyInfo> propertyInfos = new List<PropertyInfo>();
+            if (!properties.Any())
+            {
+                propertyInfos.AddRange(typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public));
+            }
             foreach (var propertyName in properties)
             {
                 var propertyInfo =
