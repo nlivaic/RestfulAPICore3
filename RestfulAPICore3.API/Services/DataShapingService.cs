@@ -61,7 +61,6 @@ namespace API.Services
 
         public ExpandoObject ShapeData<T>(T data, IEnumerable<string> properties)
         {
-
             if (properties == null)
             {
                 throw new ArgumentException("Properties cannot be null.");
