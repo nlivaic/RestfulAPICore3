@@ -18,6 +18,7 @@ namespace API.Profiles
                     options => options.MapFrom(src => src.DateOfBirth.GetCurrentAge())
                 );
             CreateMap<AuthorForCreationDto, Author>();
+            CreateMap<Author, AuthorFullDto>();
         }
     }
 }

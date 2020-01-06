@@ -13,6 +13,7 @@ using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 
 namespace API.Controllers
 {
@@ -80,26 +81,60 @@ namespace API.Controllers
         }
 
         [HttpGet("{authorId}", Name = "GetAuthor")]
-        public ActionResult Get(Guid authorId, [ModelBinder(typeof(ArrayModelBinder))]IEnumerable<string> fields)
+        [Produces("application/json",
+            "application/vnd.marvin.hateoas+json",
+            "application/vnd.marvin.author.friendly+json",
+            "application/vnd.marvin.author.friendly.hateoas+json",
+            "application/vnd.marvin.author.full.hateoas+json",
+            "application/vnd.marvin.author.full+json")]
+        public ActionResult Get(Guid authorId,
+            [ModelBinder(typeof(ArrayModelBinder))] IEnumerable<string> fields,
+            [FromHeader(Name = "Accept")]string acceptHeader
+            )
         {
+            if (!MediaTypeHeaderValue.TryParse(acceptHeader, out MediaTypeHeaderValue mediaType))
+            {
+                return BadRequest();
+            }
             var author = _repository.GetAuthor(authorId);
             if (author == null)
             {
                 return NotFound();
             }
-            var authorDto = _mapper.Map<AuthorDto>(author);
             ExpandoObject shapedData = null;
-            try
+            if (mediaType.Facets.Contains("friendly")
+                || acceptHeader == "application/vnd.marvin.hateoas+json"
+                || acceptHeader == "application/json")
             {
-                shapedData = _dataShapingService.ShapeData(authorDto, fields);
+                var authorDto = _mapper.Map<AuthorDto>(author);
+                try
+                {
+                    shapedData = _dataShapingService.ShapeData(authorDto, fields);
+                }
+                catch (InvalidPropertyMappingException ex)
+                {
+                    ModelState.AddModelError(nameof(AuthorsResourceParameters.Fields), ex.Message);
+                    return UnprocessableEntity();
+                }
             }
-            catch (InvalidPropertyMappingException ex)
+            else if (mediaType.Facets.Contains("full"))
             {
-                ModelState.AddModelError(nameof(AuthorsResourceParameters.Fields), ex.Message);
-                return UnprocessableEntity();
+                var authorFullDto = _mapper.Map<AuthorFullDto>(author);
+                try
+                {
+                    shapedData = _dataShapingService.ShapeData(authorFullDto, fields);
+                }
+                catch (InvalidPropertyMappingException ex)
+                {
+                    ModelState.AddModelError(nameof(AuthorsResourceParameters.Fields), ex.Message);
+                    return UnprocessableEntity();
+                }
             }
-            var links = CreateAuthorLinks(authorId, fields);
-            ((IDictionary<string, object>)shapedData).Add("links", links);
+            if (mediaType.Facets.Contains("hateoas"))
+            {
+                var links = CreateAuthorLinks(authorId, fields);
+                ((IDictionary<string, object>)shapedData).Add("links", links);
+            }
             return Ok(shapedData);
         }
 
