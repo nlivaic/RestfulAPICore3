@@ -25,7 +25,7 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpGet(Name = "GetCoursesForAuthor")]
         public ActionResult<IEnumerable<CourseDto>> Get(Guid authorId)
         {
             if (!_repository.AuthorExists(authorId))
@@ -33,6 +33,7 @@ namespace API.Controllers
                 return NotFound();
             }
             var courses = _repository.GetCourses(authorId);
+
             return Ok(_mapper.Map<IEnumerable<CourseDto>>(courses));
         }
 
@@ -51,7 +52,7 @@ namespace API.Controllers
             return Ok(_mapper.Map<CourseDto>(course));
         }
 
-        [HttpPost]
+        [HttpPost(Name = "PostCourseForAuthor")]
         public ActionResult<CourseDto> Post(Guid authorId, CourseForCreationDto course)
         {
             if (!_repository.AuthorExists(authorId))
@@ -64,7 +65,7 @@ namespace API.Controllers
             return CreatedAtRoute("GetCourse", new { authorId, courseId = newCourse.Id }, newCourse);
         }
 
-        [HttpPut("{courseId}")]
+        [HttpPut("{courseId}", Name = "PutCourse")]
         public ActionResult Put(Guid authorId, Guid courseId, CourseForUpdateDto course)
         {
             if (!_repository.AuthorExists(authorId))
@@ -97,7 +98,7 @@ namespace API.Controllers
             }
         }
 
-        [HttpPatch("{courseId}")]
+        [HttpPatch("{courseId}", Name = "PatchCourse")]
         public IActionResult Patch(Guid authorId, Guid courseId, [FromBody] JsonPatchDocument<CourseForUpdateDto> course)
         {
             if (!_repository.AuthorExists(authorId))
@@ -135,7 +136,7 @@ namespace API.Controllers
             }
         }
 
-        [HttpDelete("{courseId}")]
+        [HttpDelete("{courseId}", Name = "DeleteCourse")]
         public IActionResult Delete(Guid authorId, Guid courseId)
         {
             var course = _repository.GetCourse(authorId, courseId);
@@ -146,6 +147,63 @@ namespace API.Controllers
             _repository.DeleteCourse(course);
             _repository.Save();
             return NoContent();
+        }
+
+        /// <summary>
+        /// This method (as opposed to its Author counterpart) lacks `field` parameter because we have not implemented 
+        /// data shaping for this resource, to keep things concise.
+        private IEnumerable<LinkDto> CreateCourseLinks(Guid authorId, Guid? courseId = null)
+        {
+            List<LinkDto> links = new List<LinkDto>();
+            links.Add(
+                new LinkDto(
+                    Url.Link("GetCourse", new { authorId, courseId.Value }),
+                    "self",
+                    "GET"
+                )
+            );
+            links.Add(
+                new LinkDto(
+                    Url.Link("GetCoursesForAuthor", new { authorId }),
+                    "get-courses",
+                    "GET"
+                )
+            );
+            links.Add(
+                new LinkDto(
+                    Url.Link("PutCourse", new { authorId, courseId.Value }),
+                    "put-course",
+                    "PUT"
+                )
+            );
+            links.Add(
+                new LinkDto(
+                    Url.Link("PatchCourse", new { authorId, courseId.Value }),
+                    "patch-course",
+                    "PATCH"
+                )
+            );
+            links.Add(
+                new LinkDto(
+                    Url.Link("DeleteCourse", new { authorId, courseId.Value }),
+                    "delete-course",
+                    "DELETE"
+                )
+            );
+            return links;
+        }
+
+        private IEnumerable<LinkDto> CreateCoursesLinks(Guid authorId)
+        {
+            List<LinkDto> links = new List<LinkDto>();
+            links.Add(
+                new LinkDto(
+                    Url.Link("GetCourses", new { authorId }),
+                    "self",
+                    "GET"
+                )
+            );
+            return links;
         }
     }
 }

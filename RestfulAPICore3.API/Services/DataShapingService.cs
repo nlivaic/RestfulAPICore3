@@ -73,7 +73,7 @@ namespace API.Services
             foreach (var propertyName in properties)
             {
                 var propertyInfo =
-                    typeof(T).GetProperty(propertyName)
+                    typeof(T).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
                     ?? throw new InvalidPropertyMappingException(
                         $"Property name '{propertyName}' not found on type {typeof(T)}.");
 

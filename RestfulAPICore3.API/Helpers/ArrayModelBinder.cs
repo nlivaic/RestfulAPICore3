@@ -12,9 +12,12 @@ namespace API.Helpers
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             var modelName = bindingContext.ModelName;
+            var elementType = bindingContext.ModelMetadata.ModelType.GetGenericArguments()[0];
             var valueProviderResult = bindingContext.ValueProvider.GetValue(modelName);
             if (valueProviderResult == ValueProviderResult.None)
             {
+                var emptyArray = System.Array.CreateInstance(elementType, 0);
+                bindingContext.Result = ModelBindingResult.Success(emptyArray);
                 return Task.CompletedTask;
             }
             bindingContext.ModelState.SetModelValue(modelName, valueProviderResult);
@@ -24,7 +27,6 @@ namespace API.Helpers
                 bindingContext.Result = ModelBindingResult.Failed();
                 return Task.CompletedTask;
             }
-            var elementType = bindingContext.ModelMetadata.ModelType.GetGenericArguments()[0];
             if (string.IsNullOrEmpty(modelValue))
             {
                 bindingContext.Result = ModelBindingResult.Success(null);
