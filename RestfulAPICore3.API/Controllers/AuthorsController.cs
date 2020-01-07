@@ -148,7 +148,6 @@ namespace API.Controllers
         public ActionResult<AuthorDto> Post(AuthorForCreationDto author)
         {
             var newAuthor = _mapper.Map<Author>(author);
-            var newCourses = _mapper.Map<IEnumerable<Course>>(author.Courses);
             _repository.AddAuthor(newAuthor);
             _repository.Save();
             var authorDto = _mapper.Map<AuthorDto>(newAuthor);
