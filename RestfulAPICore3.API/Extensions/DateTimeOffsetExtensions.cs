@@ -4,16 +4,10 @@ namespace API.Helpers
 {
     public static class DateTimeOffsetExtensions
     {
-        public static int GetCurrentAge(this DateTimeOffset dateTimeOffset)
+        public static int GetCurrentAge(this DateTimeOffset dateOfBirth, DateTimeOffset? dateOfDeath)
         {
-            var currentDate = DateTime.UtcNow;
-            int age = currentDate.Year - dateTimeOffset.Year;
-
-            if (currentDate < dateTimeOffset.AddYears(age))
-            {
-                age--;
-            }
-
+            var finalYear = dateOfDeath.HasValue ? dateOfDeath.Value.Year : DateTime.UtcNow.Year;
+            int age = finalYear - dateOfBirth.Year;
             return age;
         }
     }
