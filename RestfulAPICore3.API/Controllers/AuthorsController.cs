@@ -14,6 +14,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
+using RestfulAPICore3.API.Constraints;
 
 namespace API.Controllers
 {
@@ -139,10 +140,30 @@ namespace API.Controllers
         }
 
         [HttpPost(Name = "PostAuthor")]
+        [Consumes("application/json",
+            "application/vnd.marvin.authorforcreation+json")]
+        [RequestHeaderMatchesMediaType("Content-Type",
+            "application/json",
+            "application/vnd.marvin.authorforcreation+json")]
         public ActionResult<AuthorDto> Post(AuthorForCreationDto author)
         {
             var newAuthor = _mapper.Map<Author>(author);
-            var newCourses = _mapper.Map<IEnumerable<Course>>(author.Courses);
+            _repository.AddAuthor(newAuthor);
+            _repository.Save();
+            var authorDto = _mapper.Map<AuthorDto>(newAuthor);
+            var shapedAuthor = _dataShapingService.ShapeData(authorDto) as IDictionary<string, object>;
+            var links = CreateAuthorLinks(authorDto.Id, null);
+            shapedAuthor.Add("links", links);
+            return CreatedAtRoute("GetAuthor", new { authorId = authorDto.Id }, shapedAuthor);
+        }
+
+        [HttpPost(Name = "PostAuthor")]
+        [Consumes("application/vnd.marvin.authorforcreationwithdateofdeath+json")]
+        [RequestHeaderMatchesMediaType("Content-Type",
+            "application/vnd.marvin.authorforcreationwithdateofdeath+json")]
+        public ActionResult<AuthorDto> Post(AuthorForCreationWithDateOfDeathDto author)
+        {
+            var newAuthor = _mapper.Map<Author>(author);
             _repository.AddAuthor(newAuthor);
             _repository.Save();
             var authorDto = _mapper.Map<AuthorDto>(newAuthor);

@@ -15,8 +15,9 @@ namespace API.Profiles
                     options => options.MapFrom(src => $"{src.FirstName} {src.LastName}"))
                 .ForMember(
                     dest => dest.Age,
-                    options => options.MapFrom(src => src.DateOfBirth.GetCurrentAge())
+                    options => options.MapFrom(src => src.DateOfBirth.GetCurrentAge(null))
                 );
+            CreateMap<AuthorForCreationWithDateOfDeathDto, Author>();
             CreateMap<AuthorForCreationDto, Author>();
             CreateMap<Author, AuthorFullDto>();
         }
