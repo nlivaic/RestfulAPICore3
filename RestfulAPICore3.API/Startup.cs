@@ -10,7 +10,7 @@ using API.Helpers;
 using API.Models;
 using API.Services;
 using AutoMapper;
-using Newtonsoft.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace RestfulAPICore3.API
 {
@@ -34,6 +34,12 @@ namespace RestfulAPICore3.API
             services.AddControllers(configure =>
             {
                 configure.ReturnHttpNotAcceptable = true;
+                configure.CacheProfiles.Add(
+                    "240SecondsCacheProfile",
+                    new CacheProfile
+                    {
+                        Duration = 240
+                    });
             })
             .AddNewtonsoftJson()
             .AddXmlDataContractSerializerFormatters()
@@ -43,6 +49,7 @@ namespace RestfulAPICore3.API
                 var unprocessableEntityFactory = serviceProvider.GetService<IInvalidModelResultFactory>();
                 options.InvalidModelStateResponseFactory = unprocessableEntityFactory.Create;
             });
+            services.AddResponseCaching();
             services.AddDbContext<CourseLibraryContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("CourseLibraryDatabase")));
             services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
@@ -71,6 +78,8 @@ namespace RestfulAPICore3.API
             }
 
             app.UseHttpsRedirection();
+
+            app.UseResponseCaching();
 
             app.UseRouting();
 
