@@ -4,6 +4,7 @@ using API.Helpers;
 using API.Models;
 using API.Services;
 using AutoMapper;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,7 +14,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("/api/authors/{authorId}/[controller]")]
-    [ResponseCache(CacheProfileName = "240SecondsCacheProfile")]
+    // [ResponseCache(CacheProfileName = "240SecondsCacheProfile")]
     public class CoursesController : ApiControllerBase
     {
         private readonly ICourseLibraryRepository _repository;
@@ -27,7 +28,9 @@ namespace API.Controllers
         }
 
         [HttpGet(Name = "GetCoursesForAuthor")]
-        [ResponseCache(Duration = 120)]
+        // [ResponseCache(Duration = 120)]
+        [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 60)]
+        [HttpCacheValidation(MustRevalidate = false)]
         public ActionResult<IEnumerable<CourseDto>> Get(Guid authorId)
         {
             if (!_repository.AuthorExists(authorId))

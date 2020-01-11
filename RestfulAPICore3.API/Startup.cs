@@ -49,7 +49,17 @@ namespace RestfulAPICore3.API
                 var unprocessableEntityFactory = serviceProvider.GetService<IInvalidModelResultFactory>();
                 options.InvalidModelStateResponseFactory = unprocessableEntityFactory.Create;
             });
-            services.AddResponseCaching();
+            services.AddHttpCacheHeaders(
+                expirationOptions =>
+                {
+                    expirationOptions.MaxAge = 120;
+                },
+                validationOptions =>
+                {
+                    validationOptions.MustRevalidate = true;
+                }
+            );
+            // services.AddResponseCaching();
             services.AddDbContext<CourseLibraryContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("CourseLibraryDatabase")));
             services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
@@ -79,7 +89,9 @@ namespace RestfulAPICore3.API
 
             app.UseHttpsRedirection();
 
-            app.UseResponseCaching();
+            // app.UseResponseCaching();
+
+            app.UseHttpCacheHeaders();
 
             app.UseRouting();
 
