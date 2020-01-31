@@ -11,6 +11,7 @@ using API.Models;
 using API.ResourceParameters;
 using API.Services;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
@@ -36,8 +37,16 @@ namespace API.Controllers
             _dataShapingService = dataShapingService;
         }
 
+        /// <summary>
+        /// Fetch a list of authors.
+        /// </summary>
+        /// <param name="authorsResourceParameters">Paging, filtering, searching, data shaping.</param>
+        /// <returns>List of authors.</returns>
+        /// <response code="200">Returns a list of authors.</response>
         [HttpGet(Name = "GetAuthors")]
         [HttpHead]
+        [ProducesResponseType(typeof(IEnumerable<AuthorDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public IActionResult Get([FromQuery] AuthorsResourceParameters authorsResourceParameters)
         {
             PagedList<Author> pagedAuthors = null;
@@ -81,6 +90,17 @@ namespace API.Controllers
             return Ok(authorsWithLinks);
         }
 
+        /// <summary>
+        /// Get author by id.
+        /// </summary>
+        /// <param name="authorId">Author's Id.</param>
+        /// <param name="fields">A CSV list of fields on the resource the API should return.</param>
+        /// <param name="acceptHeader">Allows client to 
+        /// determine whether a shorter (friendly) version 
+        /// of payload should be returned.
+        /// HATEOAS links can also be returned.</param>
+        /// <returns>Author.</returns>
+        /// <response code="200">Returns the author based on id.</response>
         [HttpGet("{authorId}", Name = "GetAuthor")]
         [Produces("application/json",
             "application/vnd.marvin.hateoas+json",
@@ -88,6 +108,10 @@ namespace API.Controllers
             "application/vnd.marvin.author.friendly.hateoas+json",
             "application/vnd.marvin.author.full.hateoas+json",
             "application/vnd.marvin.author.full+json")]
+        [ProducesResponseType(typeof(AuthorDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public ActionResult Get(Guid authorId,
             [ModelBinder(typeof(ArrayModelBinder))] IEnumerable<string> fields,
             [FromHeader(Name = "Accept")]string acceptHeader
@@ -145,6 +169,7 @@ namespace API.Controllers
         [RequestHeaderMatchesMediaType("Content-Type",
             "application/json",
             "application/vnd.marvin.authorforcreation+json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         public ActionResult<AuthorDto> Post(AuthorForCreationDto author)
         {
             var newAuthor = _mapper.Map<Author>(author);
@@ -157,23 +182,28 @@ namespace API.Controllers
             return CreatedAtRoute("GetAuthor", new { authorId = authorDto.Id }, shapedAuthor);
         }
 
-        [HttpPost(Name = "PostAuthor")]
-        [Consumes("application/vnd.marvin.authorforcreationwithdateofdeath+json")]
-        [RequestHeaderMatchesMediaType("Content-Type",
-            "application/vnd.marvin.authorforcreationwithdateofdeath+json")]
-        public ActionResult<AuthorDto> Post(AuthorForCreationWithDateOfDeathDto author)
-        {
-            var newAuthor = _mapper.Map<Author>(author);
-            _repository.AddAuthor(newAuthor);
-            _repository.Save();
-            var authorDto = _mapper.Map<AuthorDto>(newAuthor);
-            var shapedAuthor = _dataShapingService.ShapeData(authorDto) as IDictionary<string, object>;
-            var links = CreateAuthorLinks(authorDto.Id, null);
-            shapedAuthor.Add("links", links);
-            return CreatedAtRoute("GetAuthor", new { authorId = authorDto.Id }, shapedAuthor);
-        }
+        // Note: this got commented out to accommodate Swashbuckle,
+        //       since it has a problem distinguishing same
+        //       (resource Uri, method) pairings according to Content-Type header.
+        // [HttpPost(Name = "PostAuthorWithDateOfDeath")]
+        // [Consumes("application/vnd.marvin.authorforcreationwithdateofdeath+json")]
+        // [RequestHeaderMatchesMediaType("Content-Type",
+        //     "application/vnd.marvin.authorforcreationwithdateofdeath+json")]
+        // public ActionResult<AuthorDto> PostAuthorWithDateOfDeath(AuthorForCreationWithDateOfDeathDto author)
+        // {
+        //     var newAuthor = _mapper.Map<Author>(author);
+        //     _repository.AddAuthor(newAuthor);
+        //     _repository.Save();
+        //     var authorDto = _mapper.Map<AuthorDto>(newAuthor);
+        //     var shapedAuthor = _dataShapingService.ShapeData(authorDto) as IDictionary<string, object>;
+        //     var links = CreateAuthorLinks(authorDto.Id, null);
+        //     shapedAuthor.Add("links", links);
+        //     return CreatedAtRoute("GetAuthor", new { authorId = authorDto.Id }, shapedAuthor);
+        // }
 
         [HttpDelete("{authorId}", Name = "DeleteAuthor")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult Delete(Guid authorId)
         {
             var author = _repository.GetAuthor(authorId);

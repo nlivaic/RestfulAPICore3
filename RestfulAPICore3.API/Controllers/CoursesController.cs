@@ -5,6 +5,7 @@ using API.Models;
 using API.Services;
 using AutoMapper;
 using Marvin.Cache.Headers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -31,6 +32,8 @@ namespace API.Controllers
         // [ResponseCache(Duration = 120)]
         [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 60)]
         [HttpCacheValidation(MustRevalidate = false)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<CourseDto>> Get(Guid authorId)
         {
             if (!_repository.AuthorExists(authorId))
@@ -43,6 +46,8 @@ namespace API.Controllers
         }
 
         [HttpGet("{courseId}", Name = "GetCourse")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<CourseDto> Get(Guid authorId, Guid courseId)
         {
             if (!_repository.AuthorExists(authorId))
@@ -58,6 +63,8 @@ namespace API.Controllers
         }
 
         [HttpPost(Name = "PostCourseForAuthor")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<CourseDto> Post(Guid authorId, CourseForCreationDto course)
         {
             if (!_repository.AuthorExists(authorId))
@@ -71,6 +78,9 @@ namespace API.Controllers
         }
 
         [HttpPut("{courseId}", Name = "PutCourse")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Put(Guid authorId, Guid courseId, CourseForUpdateDto course)
         {
             if (!_repository.AuthorExists(authorId))
@@ -103,7 +113,28 @@ namespace API.Controllers
             }
         }
 
+        /// <summary>
+        /// Update a single property on Course.
+        /// </summary>
+        /// <param name="authorId">Author of the course.</param>
+        /// <param name="courseId">Course you are updating.</param>
+        /// <param name="course">Course Json Patch Document</param>
+        /// <remarks>Course Json Patch Document Example: \
+        /// PATCH /authors/authorid/courses/courseid \
+        /// [ \
+        ///     { \
+        ///          "op": "replace", \
+        ///          "path": "/title", \
+        ///          "value": "New Title", \
+        ///     } 
+        /// ]
+        /// </remarks>
+        /// <returns></returns>
         [HttpPatch("{courseId}", Name = "PatchCourse")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public IActionResult Patch(Guid authorId, Guid courseId, [FromBody] JsonPatchDocument<CourseForUpdateDto> course)
         {
             if (!_repository.AuthorExists(authorId))
@@ -142,6 +173,8 @@ namespace API.Controllers
         }
 
         [HttpDelete("{courseId}", Name = "DeleteCourse")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(Guid authorId, Guid courseId)
         {
             var course = _repository.GetCourse(authorId, courseId);
@@ -157,6 +190,7 @@ namespace API.Controllers
         /// <summary>
         /// This method (as opposed to its Author counterpart) lacks `field` parameter because we have not implemented 
         /// data shaping for this resource, to keep things concise.
+        /// </summary>
         private IEnumerable<LinkDto> CreateCourseLinks(Guid authorId, Guid? courseId = null)
         {
             List<LinkDto> links = new List<LinkDto>();

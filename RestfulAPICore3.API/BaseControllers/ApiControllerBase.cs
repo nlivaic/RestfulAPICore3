@@ -11,7 +11,8 @@ namespace API.BaseControllers
         {
             _invalidModelResultFactory = invalidModelResultFactory;
         }
-        public new UnprocessableEntityObjectResult UnprocessableEntity()
+
+        protected new UnprocessableEntityObjectResult UnprocessableEntity()
             => (UnprocessableEntityObjectResult)_invalidModelResultFactory.Create(ControllerContext);
     }
 }

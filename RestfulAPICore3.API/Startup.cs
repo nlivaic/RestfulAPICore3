@@ -11,6 +11,8 @@ using API.Models;
 using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
+using System.IO;
 
 namespace RestfulAPICore3.API
 {
@@ -64,6 +66,31 @@ namespace RestfulAPICore3.API
                 options.UseNpgsql(Configuration.GetConnectionString("CourseLibraryDatabase")));
             services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddSwaggerGen(setupAction =>
+            {
+                setupAction.SwaggerDoc(
+                    "LibraryOpenAPISpecification",
+                    new OpenApiInfo
+                    {
+                        Title = "Library API",
+                        Version = "v1",
+                        Description = "This API allows access to authors and their books.",
+                        Contact = new OpenApiContact
+                        {
+                            Name = "My name",
+                            Url = new Uri("https://www.somewhere.com")
+                        },
+                        License = new OpenApiLicense
+                        {
+                            Name = "MIT",
+                            Url = new Uri("https://www.opensource.org/licenses/MIT")
+                        },
+                        TermsOfService = new Uri("https://www.your-terms-of-service.com")
+                    });
+                // A workaround for having multiple POST methods on one controller.
+                // setupAction.ResolveConflictingActions(r => r.First());
+                setupAction.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "RestfulAPICore3.API.xml"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -90,6 +117,17 @@ namespace RestfulAPICore3.API
             app.UseHttpsRedirection();
 
             // app.UseResponseCaching();
+            // Take care to put .UseSwagger() after Https redirection, so as to prevent Http requests.
+            app.UseSwagger();
+
+            app.UseSwaggerUI(setupAction =>
+            {
+                setupAction.SwaggerEndpoint(
+                    "/swagger/LibraryOpenAPISpecification/swagger.json",
+                    "Library API"
+                );
+                setupAction.RoutePrefix = "";   // This removes the /swagger/ from the endpoint Uri.
+            });
 
             app.UseHttpCacheHeaders();
 

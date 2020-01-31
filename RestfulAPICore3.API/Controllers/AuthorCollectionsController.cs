@@ -8,6 +8,7 @@ using API.Helpers;
 using API.Entities;
 using System.Linq;
 using API.BaseControllers;
+using Microsoft.AspNetCore.Http;
 
 namespace API.Controllers
 {
@@ -26,6 +27,8 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<AuthorDto>> Post(IEnumerable<AuthorForCreationDto> authors)
         {
             var newAuthors = _mapper.Map<IEnumerable<Author>>(authors);
