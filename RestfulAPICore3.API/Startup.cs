@@ -13,6 +13,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using System.IO;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace RestfulAPICore3.API
 {
@@ -28,9 +29,7 @@ namespace RestfulAPICore3.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<IValidationProblemDetailsFactory, ValidationProblemDetailsFactory>();
             services.AddTransient<IDataShapingService, DataShapingService>();
-            services.AddSingleton<IInvalidModelResultFactory, InvalidModelResultFactory>();
             services.AddSingleton<IPagingService, PagingService>();
             services.AddTransient<IPropertyMappingService, PropertyMappingService>();
             services.AddControllers(configure =>
@@ -47,9 +46,19 @@ namespace RestfulAPICore3.API
             .AddXmlDataContractSerializerFormatters()
             .ConfigureApiBehaviorOptions(options =>
             {
-                var serviceProvider = services.BuildServiceProvider();
-                var unprocessableEntityFactory = serviceProvider.GetService<IInvalidModelResultFactory>();
-                options.InvalidModelStateResponseFactory = unprocessableEntityFactory.Create;
+                options.InvalidModelStateResponseFactory = actionContext =>
+                {
+                    var actionExecutingContext = actionContext as ActionExecutingContext;
+                    var validationProblemDetails = ValidationProblemDetailsFactory.Create(actionContext);
+                    if (actionContext.ModelState.ErrorCount > 0
+                        && actionExecutingContext?.ActionArguments.Count == actionContext.ActionDescriptor.Parameters.Count)
+                    {
+                        validationProblemDetails.Status = StatusCodes.Status422UnprocessableEntity;
+                        return new UnprocessableEntityObjectResult(validationProblemDetails);
+                    }
+                    validationProblemDetails.Status = StatusCodes.Status400BadRequest;
+                    return new BadRequestObjectResult(validationProblemDetails);
+                };
             });
             services.AddHttpCacheHeaders(
                 expirationOptions =>

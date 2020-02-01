@@ -19,8 +19,7 @@ namespace API.Controllers
         private readonly ICourseLibraryRepository _repository;
         private readonly IMapper _mapper;
 
-        public AuthorCollectionsController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory)
-            : base(invalidModelResultFactory)
+        public AuthorCollectionsController(ICourseLibraryRepository repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;

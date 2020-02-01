@@ -28,8 +28,7 @@ namespace API.Controllers
         private readonly IPropertyMappingService _propertyMappingService;
         private readonly IDataShapingService _dataShapingService;
 
-        public AuthorsController(ICourseLibraryRepository repository, IMapper mapper, IInvalidModelResultFactory invalidModelResultFactory, IPropertyMappingService propertyMappingService, IDataShapingService dataShapingService)
-            : base(invalidModelResultFactory)
+        public AuthorsController(ICourseLibraryRepository repository, IMapper mapper, IPropertyMappingService propertyMappingService, IDataShapingService dataShapingService)
         {
             _repository = repository;
             _mapper = mapper;
@@ -170,6 +169,7 @@ namespace API.Controllers
             "application/json",
             "application/vnd.marvin.authorforcreation+json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<AuthorDto> Post(AuthorForCreationDto author)
         {
             var newAuthor = _mapper.Map<Author>(author);
