@@ -32,34 +32,38 @@ namespace RestfulAPICore3.API
             services.AddTransient<IDataShapingService, DataShapingService>();
             services.AddSingleton<IPagingService, PagingService>();
             services.AddTransient<IPropertyMappingService, PropertyMappingService>();
-            services.AddControllers(configure =>
-            {
-                configure.ReturnHttpNotAcceptable = true;
-                configure.CacheProfiles.Add(
-                    "240SecondsCacheProfile",
-                    new CacheProfile
-                    {
-                        Duration = 240
-                    });
-            })
-            .AddNewtonsoftJson()
-            .AddXmlDataContractSerializerFormatters()
-            .ConfigureApiBehaviorOptions(options =>
-            {
-                options.InvalidModelStateResponseFactory = actionContext =>
+            services
+                .AddControllers(configure =>
                 {
-                    var actionExecutingContext = actionContext as ActionExecutingContext;
-                    var validationProblemDetails = ValidationProblemDetailsFactory.Create(actionContext);
-                    if (actionContext.ModelState.ErrorCount > 0
-                        && actionExecutingContext?.ActionArguments.Count == actionContext.ActionDescriptor.Parameters.Count)
+                    configure.ReturnHttpNotAcceptable = true;
+                    configure.CacheProfiles.Add(
+                        "240SecondsCacheProfile",
+                        new CacheProfile
+                        {
+                            Duration = 240
+                        });
+                    configure.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status400BadRequest));
+                    configure.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status406NotAcceptable));
+                    configure.Filters.Add(new ProducesResponseTypeAttribute(StatusCodes.Status500InternalServerError));
+                })
+                .AddNewtonsoftJson()
+                .AddXmlDataContractSerializerFormatters()
+                .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.InvalidModelStateResponseFactory = actionContext =>
                     {
-                        validationProblemDetails.Status = StatusCodes.Status422UnprocessableEntity;
-                        return new UnprocessableEntityObjectResult(validationProblemDetails);
-                    }
-                    validationProblemDetails.Status = StatusCodes.Status400BadRequest;
-                    return new BadRequestObjectResult(validationProblemDetails);
-                };
-            });
+                        var actionExecutingContext = actionContext as ActionExecutingContext;
+                        var validationProblemDetails = ValidationProblemDetailsFactory.Create(actionContext);
+                        if (actionContext.ModelState.ErrorCount > 0
+                            && actionExecutingContext?.ActionArguments.Count == actionContext.ActionDescriptor.Parameters.Count)
+                        {
+                            validationProblemDetails.Status = StatusCodes.Status422UnprocessableEntity;
+                            return new UnprocessableEntityObjectResult(validationProblemDetails);
+                        }
+                        validationProblemDetails.Status = StatusCodes.Status400BadRequest;
+                        return new BadRequestObjectResult(validationProblemDetails);
+                    };
+                });
             services.AddHttpCacheHeaders(
                 expirationOptions =>
                 {

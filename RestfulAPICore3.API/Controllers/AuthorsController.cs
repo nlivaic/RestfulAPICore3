@@ -44,7 +44,7 @@ namespace API.Controllers
         /// <response code="200">Returns a list of authors.</response>
         [HttpGet(Name = "GetAuthors")]
         [HttpHead]
-        [ProducesResponseType(typeof(IEnumerable<AuthorDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<AuthorDto>))]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public IActionResult Get([FromQuery] AuthorsResourceParameters authorsResourceParameters)
         {
@@ -102,15 +102,15 @@ namespace API.Controllers
         /// <response code="200">Returns the author based on id.</response>
         [HttpGet("{authorId}", Name = "GetAuthor")]
         [Produces("application/json",
+            "application/xml",      // This is just for completeness because we also have the Xml formatter set up in Startup.
             "application/vnd.marvin.hateoas+json",
             "application/vnd.marvin.author.friendly+json",
             "application/vnd.marvin.author.friendly.hateoas+json",
             "application/vnd.marvin.author.full.hateoas+json",
             "application/vnd.marvin.author.full+json")]
-        [ProducesResponseType(typeof(AuthorDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthorDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult Get(Guid authorId,
             [ModelBinder(typeof(ArrayModelBinder))] IEnumerable<string> fields,
             [FromHeader(Name = "Accept")]string acceptHeader
@@ -169,7 +169,6 @@ namespace API.Controllers
             "application/json",
             "application/vnd.marvin.authorforcreation+json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<AuthorDto> Post(AuthorForCreationDto author)
         {
             var newAuthor = _mapper.Map<Author>(author);
