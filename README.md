@@ -231,7 +231,7 @@
 * This way cached responses will get returned directly from cache component until the resource expires. This saves bandwidth and round-trip times (in case of private cache), resulting in a large number of client being able to be served efficiently. In case of public cache on the origin server, this saves time because database queries and server-side processing can be skipped.
 * Once the resource expires, it can still be served from the cache if it has not gone stale. Checking whether it is still fresh is done by the caching component going to the API with the `If-None-Match` and `If-Modified-Since` headers set. API can then fetch the resources from the database, generate ETag, compare with the one just received and if the resource is still fresh return `304`. This saves bandwidth. Of course, if resource is stale, entire resource is returned along with a new `ETag` and `Last-Modified`.
 
-![Appropriate caching technique](https://thepracticaldev.s3.amazonaws.com/i/0xqf6pncwx3az0igr57m.png)
+![Appropriate caching technique](https://user-images.githubusercontent.com/26722936/76457937-f48a9f80-63d9-11ea-9ace-4cc57588ab0d.png)
 
 #### Issues with ASP.NET Core caching middleware
 
@@ -240,7 +240,7 @@
     * Once a request comes in for an expired cached resource, caching middleware should forward the request and append `If-None-Match` and `If-Modified-Since` headers, so API can compare them with the fetched resource and determine whether the fetched resource is more fresh and return `304` or `200`. However, caching middleware forwards the `GET` request without those headers and then in turn API simply fetches and returns those resources as `200`. The response is then cached again and cache timer is restarted.
     * To make the validation caching work, clients (!) are expected to send `If-None-Match` and `If-Modified-Since`. This is not ok because clients should only send simple `GET` with the Uri, and the caching component should then append additional `If-None-Match` and `If-Modified-Since` headers to the request forwarded to the API. When clients do send those headers, caching middleware return `304` or `200`. Caching middleware should never return `304`.
 
-![ASP.NET Core caching implementation](https://thepracticaldev.s3.amazonaws.com/i/e0qaqq4wwh40v9w6wu39.png)
+![ASP.NET Core caching implementation](https://user-images.githubusercontent.com/26722936/76457976-08ce9c80-63da-11ea-9cb9-fd165b1ae8cd.png)
 
 #### Conclusion regarding caching
 
